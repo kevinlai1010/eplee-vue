@@ -1,0 +1,35 @@
+steps:
+  
+  - task: NodeTool@0
+    inputs:
+      versionSpec: $(node_version)
+
+  - script: |
+      echo Installing packages
+      yarn
+      echo Start building linux application
+      yarn build:linux
+      echo Linux build is complete
+    displayName: "Build Linux app"
+    env:
+      GH_TOKEN: $(GH_TOKEN)
+  - script: |
+      cd build
+      ls
+    displayName: "Validate build"
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: "$(Build.SourcesDirectory)/build"
+      contents: |
+        *.deb
+        *.snap
+        *.zip
+        *.AppImage
+      targetFolder: $(Build.ArtifactStagingDirectory)
+    displayName: "Copying files"
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: "$(Build.ArtifactStagingDirectory)"
+      artifactName: linux
+    displayName: "Publish artifacts"

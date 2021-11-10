@@ -1,0 +1,33 @@
+steps:
+
+  - task: NodeTool@0
+    inputs:
+      versionSpec: $(node_version)
+
+  - script: |
+      echo Installing packages
+      yarn
+      echo Start building MacOS application
+      yarn build:mac
+      echo MacOS build is complete
+    displayName: "Build MacOS app"
+    env:
+      GH_TOKEN: $(GH_TOKEN)
+  - script: |
+      cd build
+      ls
+    displayName: "Validate build"
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: $(Build.SourcesDirectory)/build
+      contents: |
+        *.dmg
+        *.zip
+      targetFolder: $(Build.ArtifactStagingDirectory)
+    displayName: "Copying files"
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: "$(Build.ArtifactStagingDirectory)"
+      artifactName: mac
+    displayName: "Publish artifacts"
